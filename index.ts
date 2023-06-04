@@ -1,55 +1,48 @@
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
-import cors from 'cors';
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
-
-type Rooms = { [roomId: string]: string };
-
-const rooms: Rooms = {};
-
-app.use(cors());
-
-app.use('/something', (req, res) => {
-  res.send({ something: 'something' });
-});
+const rooms: { [key: string]: string } = {};
 
 io.on('connection', (socket) => {
-  socket.on('join', (roomId: string, pass: string) => {
-    if (rooms[roomId] && rooms[roomId] === pass) {
-      socket.join(roomId);
-      socket.emit('join-success');
+  socket.on('create', (id, pass, callback) => {
+    if (!rooms[id]) {
+      rooms[id] = pass;
+      socket.join(id);
+      io.emit('list', Object.keys(rooms));
+      callback(true);
     } else {
-      socket.emit('wrong-pass');
+      callback(false);
     }
   });
-
-  socket.on('leave', (roomId: string) => {
-    socket.leave(roomId);
-  });
-
-  socket.on('post-message', (roomId, message) => {
-    if (io.sockets.adapter.rooms.get(roomId)?.has(socket.id)) {
-      socket.broadcast.to(roomId).emit('message', { message });
-    }
-  });
-
-  socket.on('create-room', (roomId, pass) => {
-    if (!rooms[roomId]) {
-      rooms[roomId] = pass;
-      socket.emit('create-success');
+  socket.on('join', (id: string, pass: string, callback) => {
+    if (rooms[id] === pass) {
+      socket.join(id);
+      callback(true);
     } else {
-      socket.emit('duplicate-room');
+      callback(false);
     }
   });
-  socket.on('get-rooms', () => {
-    socket.emit('room-list', rooms);
+  socket.on('leave', (id: string) => {
+    socket.leave(id);
+  });
+  socket.on('post', (id, msg, displayName) => {
+    if (io.of('/').adapter.rooms.get(id)?.has(socket.id)) {
+      socket.broadcast.to(id).emit('msg', { msg, id, displayName });
+    }
+  });
+  socket.on('get', (callback) => {
+    callback(Object.keys(rooms));
   });
 });
-io.of('/').adapter.on('delete-room', (room) => {
-  delete rooms[room];
+
+io.of('/').adapter.on('delete-room', (id) => {
+  if (id in rooms) {
+    delete rooms[id];
+    io.emit('list', Object.keys(rooms));
+  }
 });
 
 server.listen(3000, () => {
