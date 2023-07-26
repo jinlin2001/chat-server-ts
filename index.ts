@@ -1,47 +1,50 @@
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
+import { origin } from './env';
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
-const rooms: { [key: string]: string } = {};
+const io = new Server(server, { cors: { origin } });
+const chats: { [key: string]: string } = {};
 
 io.on('connection', (socket) => {
-  socket.on('create', (id, pass, callback) => {
-    if (!rooms[id]) {
-      rooms[id] = pass;
-      socket.join(id);
-      io.emit('list', Object.keys(rooms));
+  socket.on('create', (roomId, roomPass, callback) => {
+    if (!chats[roomId]) {
+      chats[roomId] = roomPass;
+      socket.join(roomId);
+      io.emit('chat-list', Object.keys(chats));
       callback(true);
     } else {
       callback(false);
     }
   });
-  socket.on('join', (id: string, pass: string, callback) => {
-    if (rooms[id] === pass) {
-      socket.join(id);
+  socket.on('join', (roomId: string, roomPass: string, callback) => {
+    if (chats[roomId] === roomPass) {
+      socket.join(roomId);
       callback(true);
     } else {
       callback(false);
     }
   });
-  socket.on('leave', (id: string) => {
-    socket.leave(id);
+  socket.on('leave', (roomId: string) => {
+    socket.leave(roomId);
   });
-  socket.on('post', (id, msg, displayName) => {
-    if (io.of('/').adapter.rooms.get(id)?.has(socket.id)) {
-      socket.broadcast.to(id).emit('msg', { msg, id, displayName });
+  socket.on('post', (roomId, msg, displayName) => {
+    if (io.of('/').adapter.rooms.get(roomId)?.has(socket.id)) {
+      socket.broadcast
+        .to(roomId)
+        .emit('chat-msg', { msg, roomId, displayName });
     }
   });
-  socket.on('get', (callback) => {
-    callback(Object.keys(rooms));
+  socket.on('get-chats', (callback) => {
+    callback(Object.keys(chats));
   });
 });
 
-io.of('/').adapter.on('delete-room', (id) => {
-  if (id in rooms) {
-    delete rooms[id];
-    io.emit('list', Object.keys(rooms));
+io.of('/').adapter.on('delete-room', (roomId) => {
+  if (roomId in chats) {
+    delete chats[roomId];
+    io.emit('chat-list', Object.keys(chats));
   }
 });
 
