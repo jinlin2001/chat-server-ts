@@ -1,10 +1,9 @@
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
-import { origin } from './env';
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin } });
+const io = new Server(server, { cors: { origin: process.env.CLIENT_ORIGIN } });
 const chats: { [key: string]: string } = {};
 
 io.on('connection', (socket) => {
