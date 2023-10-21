@@ -5,7 +5,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: process.env.CLIENT_ORIGIN },
-  allowRequest(req, fn) {
+  allowRequest: (req, fn) => {
     console.log(req.headers, 'headers');
     console.log(req.headers.origin, 'origin');
     console.log(process.env.CLIENT_ORIGIN, 'env client origin');
