@@ -5,16 +5,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: process.env.CLIENT_ORIGIN },
-  allowRequest: (req, fn) => {
-    console.log(req.headers, 'headers');
-    console.log(req.headers.origin, 'origin');
-    console.log(process.env.CLIENT_ORIGIN, 'env client origin');
-    return true;
-  },
 });
 const chats: { [key: string]: string } = {};
-
-io.prependListener;
 
 io.on('connection', (socket) => {
   socket.on('create', (roomId, roomPass, callback) => {
@@ -59,5 +51,4 @@ io.of('/').adapter.on('delete-room', (roomId) => {
 
 server.listen(3000, () => {
   console.log('listening on port 3000');
-  console.log(process.env.CLIENT_ORIGIN, 'env');
 });
