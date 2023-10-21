@@ -49,4 +49,5 @@ io.of('/').adapter.on('delete-room', (roomId) => {
 
 server.listen(3000, () => {
   console.log('listening on port 3000');
+  console.log(process.env.CLIENT_ORIGIN, 'env');
 });
