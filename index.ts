@@ -3,7 +3,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: process.env.CLIENT_ORIGIN } });
+const io = new Server(server, { cors: { origin: '*' } });
 const chats: { [key: string]: string } = {};
 
 io.on('connection', (socket) => {
@@ -47,6 +47,6 @@ io.of('/').adapter.on('delete-room', (roomId) => {
   }
 });
 
-server.listen(80, () => {
-  console.log('listening on port 80');
+server.listen(3000, () => {
+  console.log('listening on port 3000');
 });
