@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "cross-env CLIENT_ORIGIN='https://jinlin-portfolio.web.app' node -r ts-node/register ./index.ts",
+    "start": "pm2 start node -- -r ts-node/register ./index.ts",
     "nodemon:start": "nodemon index.ts"
   },
   "keywords": [],
