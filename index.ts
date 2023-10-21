@@ -3,9 +3,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_ORIGIN },
-});
+const io = new Server(server);
 const chats: { [key: string]: string } = {};
 
 io.on('connection', (socket) => {
